@@ -329,7 +329,79 @@ At the bottom of the *app/views/gifts/index.html.erb* page, add the logic to onl
 
 As before, we check to see if the user is signed in and then if the user has the role, 'admin'.
 
+Let's also add a link to the Gifts page to our navbar.
 
+*app/views/layouts/_navigation.html.erb*
+
+Add the following code in line 3:
+```
+<li><%= link_to 'Gifts', gifts_path %></li>
+````
+
+(Under the `<ul class="nav">` line)
+
+Let's also restrict access to the new and edit gifts pages, so only logged in admin users can see them.
+
+In *app/controllers/gifts_controller.rb*
+
+The first 3 lines should look like this:
+
+```
+class GiftsController < ApplicationController
+  before_filter :authenticate_user!, :except => ['index', 'show']
+  before_action :set_gift, only: [:show, :edit, :update, :destroy]
+  ...
+```
+
+Note that this time we are allowing non-authenticated users to see the index and show pages of gifts.
+
+We will add some more security later using authorization and CanCan.
+
+### Step 11.
+
+Now we will use the Carrierwave gem to upload images for our gifts.
+
+In your *Gemfile*, add `gem "carrierwave"` above the development group and run `bundle` in your terminal.
+
+Restart your server (*Control+C*, `rails s`)
+
+Now we will *generate* an uploader using the carrierwave gem.
+
+In your terminal:
+
+```
+rails g uploader GiftPicture
+```
+
+this should give you a file in *app/uploaders/gift_picture_uploader.rb*
+
+Have a look in this file and read the comments which explain each line of ruby code in there.
+
+You can:
++ choose to use a default picture if one is not uploaded
++ specify what file extensions you will accept
++ scale images
+
+We will leave this file for now but come back to it later.
+
+In your *app/models/gift.rb* file we add a line of code to tell it which attribute is connected to our Uploader
+
+```
+class Gift < ActiveRecord::Base
+	mount_uploader :image, GiftPictureUploader
+	
+	has_many :gift_occasions
+	has_many :occasions, through: :gift_occasions
+end
+```
+
+If you look at the New Gift form in your browser now, you will see that it just has a text field for the Image attribute.
+
+We will now make it so you can upload a file instead.
+
+*app/views/gifts/_form.html.erb*
+
+```
 
 
 
