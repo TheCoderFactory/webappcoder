@@ -312,6 +312,23 @@ Adding the *collection* to the form field, the user will only see their recipien
 
 If you add an occasion for your recipient now you will see the occasion listed on the home page of the app.
 
+### Step 10.
+
+Let's build the functionality for the admin user to Add Gifts to the app.
+
+At the bottom of the *app/views/gifts/index.html.erb* page, add the logic to only allow the admin user to Add a Gift.
+
+```
+...
+<% if user_signed_in? %>
+  <% if current_user.has_role? :admin %>
+    <%= link_to 'New Gift', new_gift_path %>
+  <% end %>
+<% end %>
+```
+
+As before, we check to see if the user is signed in and then if the user has the role, 'admin'.
+
 
 
 
