@@ -1,8 +1,11 @@
 # Autogiftr
 
 This tutorial will help you build the Autogiftr app using RailsComposer.
-We will use the Carrierwave gem to upload images for your Gifts and FriendlyId for friendly URLs (better SEO).
+We will use the [Carrierwave](https://github.com/carrierwaveuploader/carrierwave) gem to upload images for your Gifts and [FriendlyId](https://github.com/norman/friendly_id) for friendly URLs (better SEO).
 You will get more practice interacting with Devise (authentication) and CanCan (athorisation).
+
+I won't cover UI possibilities here. I will leave it up to you to style as you like.
+Also, we will force the user to sign up before creating recipients/occasions at this stage and we will come back later and add the concept of "guest user".
 
 ### Step 1.
 
@@ -176,6 +179,138 @@ class GiftOccasion < ActiveRecord::Base
   belongs_to :occasion
 end
 ```
+
+### Step 7. 
+
+Now might be a good time to commit your work to git and Github.
+
+In your terminal:
+```
+git add .
+git commit -am 'scaffolds and model'
+git push origin master
+```
+
+### Step 8.
+
+Add a button on the front page that allows the user to choose a Recipient. They need to be signed in to be able to do this.
+
+Go to *app/controllers/recipients_controller.rb* and **add** the following line up the top of the document. Leave everything below the before_action line alone.
+
+```
+class RecipientsController < ApplicationController
+  before_filter :authenticate_user!
+  before_action :set_recipient, only: [:show, :edit, :update, :destroy]
+  .....
+```
+
+The `before_filter :authenticate_user!` line means that the user must sign in before going to any page within that controller's views.
+
+Go to *app/views/home/index.html.erb*
+
+And change the file to read:
+
+```
+<h1>AutoGiftr</h1>
+
+<!-- this section shows a list of the current user's recipients if they have any. We use the 'current_user' method given to use by devise to refer to the user using the site. They must be signed in to be a current_user -->
+<% if user_signed_in? %>
+	<% if current_user.recipients.count > 0 %>
+		<p><b>You currently have <%= pluralize(current_user.recipients.count, 'recipient') %></b></p>
+		<table class="table">
+			<% current_user.recipients.each do |recipient| %>
+				<tr>
+					<td><%= recipient.name %></td>
+				</tr>
+			<% end %>
+		</table>
+	<% end %>
+<% end %>
+
+<%= link_to "Add a recipient", new_recipient_path, class: 'btn btn-success' %>
+```
+
+If you are logged out when you click on "Add a recipient" button, you will asked to sign in/sign up. When you do so, you will be taken to the New recipient form.
+
+We now need to change the recipient form because we don't give the user the choice of User to attach the recipient to.
+
+Remove the field for User from the form. *app/views/recipients/_form.html.erb* should look like this:
+```
+<%= simple_form_for(@recipient) do |f| %>
+  <%= f.error_notification %>
+
+  <div class="form-inputs">
+    <%= f.input :name %>
+  </div>
+
+  <div class="form-actions">
+    <%= f.button :submit %>
+  </div>
+<% end %>
+```
+
+We do need to attach the recipient to the current user - we do this in the controller.
+Find the **create method** in *app/controllers/recipients_controller.rb* and add a line for @recipient.user:
+```
+  def create
+    @recipient = Recipient.new(recipient_params)
+    @recipient.user = current_user
+    ...
+```
+
+Now add a recipient and return to the home page. You should see your recipient listed there.
+
+### Step 9.
+
+Let's create occasions for our recipients.
+
+Change the table in *app/views/home/index.html.erb* to:
+```
+<table class="table">
+	<% current_user.recipients.each do |recipient| %>
+		<tr>
+			<td><%= recipient.name %></td>
+			<td>
+				<% if recipient.occasions.count > 0 %>
+					<ul>
+						<% recipient.occasions.each do |occasion| %>
+							<li><%= occasion.title %></li>
+						<% end %>
+					</ul>
+				<% end %>
+			</td>
+			<td><%= link_to "Add occasion", new_occasion_path, class: 'btn btn-success' %></td>
+
+		</tr>
+	<% end %>
+</table>
+```
+
+This will add a "Add occasion button" to each row and list any occasions already associated with the recipient.
+
+Later, we will create a more elegant solution, but for now the user gets taken to a page where they will choose the recipient again.
+
+Change *app/views/occasions/_form.html.erb* to look like:
+
+```
+<%= simple_form_for(@occasion) do |f| %>
+  <%= f.error_notification %>
+
+  <div class="form-inputs">
+    <%= f.association :recipient, collection: current_user.recipients,as: :radio_buttons %>
+    <%= f.input :title, label: 'Title for occasion', placeholder: 'eg. Birthday, anniversary, St Valentines Day etc' %>
+    <%= f.input :date %>
+  </div>
+
+  <div class="form-actions">
+    <%= f.button :submit %>
+  </div>
+<% end %>
+```
+
+Adding the *collection* to the form field, the user will only see their recipients.
+
+If you add an occasion for your recipient now you will see the occasion listed on the home page of the app.
 
 
 
