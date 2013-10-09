@@ -402,9 +402,53 @@ We will now make it so you can upload a file instead.
 *app/views/gifts/_form.html.erb*
 
 ```
+<%= simple_form_for @gift, :html => {:multipart => true} do |f| %>
+  <%= f.error_notification %>
 
+  <div class="form-inputs">
+    <%= f.input :title %>
+    <%= f.input :description %>
+    <%= f.input :image, as: :file %>
+    <%= f.input :price %>
+  </div>
 
+  <div class="form-actions">
+    <%= f.button :submit %>
+  </div>
+<% end %>
+```
 
+Note the first line. We have removed the brackets around `@gift` and added `:html => {:multipart => true}`.
+
+This helps us because if the form reloads due to a validation error, the uploaded image will remain as a part of the form.
+
+Also see that the image field now has the `as: :file` notation. This means you will see an upload button instead of the text field.
+
+Create a gift using the upload image button and then we will change the index and show pages to surface the image.
+
+*app/views/gifts/index.html.erb*
+This:
+```
+<td><%= gift.image %></td>
+```
+
+becomes this:
+```
+<td><%= image_tag gift.image %></td>
+```
+
+Make a similar change to *app/views/gifts/show.html.erb*
+
+```
+<td><%= image_tag @gift.image %></td>
+```
+
+You will probably want to pretty your page up by adding CSS classes or styling to the image.
+
+For now I have just added the width property to my image tags:
+```
+<%= image_tag gift.image, width: '100px' %>
+```
 
 
 
