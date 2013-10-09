@@ -1,6 +1,8 @@
 # Autogiftr
 
-This tutorial will help you build the Autogiftr app.
+This tutorial will help you build the Autogiftr app using RailsComposer.
+We will use the Carrierwave gem to upload images for your Gifts and FriendlyId for friendly URLs (better SEO).
+You will get more practice interacting with Devise (authentication) and CanCan (athorisation).
 
 ### Step 1.
 
@@ -55,6 +57,141 @@ Respond to the questions as follows:
 21. y (Reduce logs)
 22. y (Use better_errors)
 23. n (Don't create project specific gemset)
+
+### Step 3.
+
+Now go into the folder that we just created in your command line
+
+```
+cd Autogiftr
+```
+
+Open the directory in Sublime `subl .`
+
+And test that the app works by running your server `rails s` and opening your browser to [localhost:3000](localhost:3000)
+
+If you get an error, you might need to run `bundle`.
+
+### Step 4.
+
+Let's seed the database with our admin user and roles. Copy the text from the [Gist](https://gist.github.com/pedrogrande/5632376) and paste into (replace all the text) in *db/seeds.rb*
+
+Change the name, email and password if you want.
+
+Then seed the data to the database by typing this command in the terminal (stop the server or open a new tab - you may need to set RVM with the command above in the new tab, and make sure you are in the correct folder *autogiftr*):
+
+```
+rake db:seed
+```
+
+Test that you can log in as the admin user and that you see the admin menu in the navbar.
+
+### Step 5.
+
+Let's add our scaffolds to our app. Remember we already have the User scaffold from Rails Composer.
+
+We decided on the following:
+
+1. Gift
+2. Recipient
+3. Occasion
+
++ A Recipient belongs to User, a User has many Recipients (one to many)
++ An Occasion belongs to Recipient, a Recipient has many Occasions (one to many)
++ A Gift has many occasions, an Occasion has many gifts (many to many)
+
+We create our scaffolds in order so where there is a relationship, we can express it with our commands and not get an error from the database. (eg. create the Recipient scaffold before the Occasion scaffold) If you use `recipient:references` before creating the Recipient table, the database will throw an error.
+
+Create the Recipient scaffold:
+```
+rails g scaffold Recipient name user:references
+```
+
+Create the Occasion scaffold
+```
+rails g scaffold Occasion title date:date recipient:references
+```
+
+Create the Gift scaffold
+```
+rails g scaffold Gift name description:text price:decimal image
+```
+
+Finally we create the **join table** for the many to many relationship between gifts and occasions.
+```
+rails g model GiftOccasion gift:references occasion:references
+```
+
+Now migrate these changes to the database
+```
+rake db:migrate
+```
+
+### Step 6.
+
+Now you will continue to tell your app about the data relationships. We do this in the model files for each object.
+
+*app/models/user.rb*
+```
+class User < ActiveRecord::Base
+  rolify
+  # Include default devise modules. Others available are:
+  # :confirmable, :lockable, :timeoutable and :omniauthable
+  devise :database_authenticatable, :registerable,
+         :recoverable, :rememberable, :trackable, :validatable
+
+  has_many :recipients
+end
+```
+
+*app/models/recipient.rb*
+```
+class Recipient < ActiveRecord::Base
+  belongs_to :user
+  has_many :occasions
+end
+```
+
+*app/models/occasion.rb*
+```
+class Occasion < ActiveRecord::Base
+  belongs_to :recipient
+  has_many :gift_occasions
+  has_many :gifts, through: :gift_occasions
+end
+```
+
+*app/models/gift.rb*
+```
+class Gift < ActiveRecord::Base
+	has_many :gift_occasions
+	has_many :occasions, through: :gift_occasions
+end
+```
+
+You can look at *app/models/gift_occasion.rb* and see that it already has the `belongs_to` lines:
+```
+class GiftOccasion < ActiveRecord::Base
+  belongs_to :gift
+  belongs_to :occasion
+end
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
