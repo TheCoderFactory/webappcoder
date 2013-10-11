@@ -450,6 +450,68 @@ For now I have just added the width property to my image tags:
 <%= image_tag gift.image, width: '100px' %>
 ```
 
+### Step 12.
+
+First let's tidy up the Gift index page a little bit before adding the ability to give gifts to a recipient/occasion.
+
+Add a .gift-image class to your stylesheet. I put it in *app/assets/stylesheets/bootstrap_and_overrides.css.scss*
+
+```
+.gift-image {
+	width: 150px;
+}
+```
+
+This is how my *app/views/gifts/index.html.erb* looks now:
+
+```
+<h1>Choose Gifts</h1>
+
+<table class="table table-hover">
+
+
+<% @gifts.each do |gift| %>
+  <tr>
+    <td><%= image_tag gift.image, class: 'gift-image' %></td>
+    <td><strong><%= gift.title.titleize %></strong>
+        <br><p><%= gift.description %></p>
+    </td>
+    <td><%= number_to_currency(gift.price) %></td>
+    <td><%= link_to 'Choose ' + gift.title.parameterize, gift, class: 'btn btn-success pull-right' %></td>
+    <% if user_signed_in? %>
+      <% if current_user.has_role? :admin %>
+        <td><%= link_to 'Edit', edit_gift_path(gift) %><br>
+            <%= link_to 'Destroy', gift, method: :delete, data: { confirm: 'Are you sure?' } %>
+        </td>
+      <% end %>
+    <% end %>
+  </tr>
+<% end %>
+</table>
+
+<br />
+
+<% if user_signed_in? %>
+  <% if current_user.has_role? :admin %>
+    <%= link_to 'New Gift', new_gift_path %>
+  <% end %>
+<% end %>
+```
+What I've done:
++ Add the table class to the table tag `<table class="table table-hover">`
++ Remove the `<thead>` section
++ used the `titleize` method for the gift title (in case you didn't use a capital when adding the gift)
++ used the `number_to_currency` method to give the price a dollar sign and two zeros after the decimal place
++ added a button to take the user to the gift *show* page
++ used the `parameterize` method for the gift title on the button to make it lower case
++ hide the Edit and Destroy links from non-admin users
+
+
+### Step 13.
+
+Ok, this is the tricky but fun bit.
+
+The next steps will be using some more advanced techniques so we will cover these next week.
 
 
 
