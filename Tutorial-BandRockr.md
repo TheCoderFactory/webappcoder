@@ -358,7 +358,7 @@ Work it out yourself :) Look at photo.rb for clues.
 
 We'll be editing *app/views/home/index.html.erb*
 
-
+Hello
 
 
 
