@@ -312,15 +312,19 @@ Starting with the *app/controllers/home_controller.rb* file, we will bring in th
 ```
 class HomeController < ApplicationController
   def index
-    @photo = Photo.first
-    @gig = Gig.next
-    @album = Album.first
-    @track = Track.first
     @band_profile = BandProfile.first
-    @links = @band_profile.links
+    if @band_profile
+      @links = @band_profile.links
+      @photo = Photo.first
+      @gig = Gig.next
+      @album = Album.first
+      @track = Track.first
+    end
   end
 end
 ```
+
+
 
 Then apply some default scopes to our models so that the first record returned is the last one added. Except for Gig, where we will create a method in our Gig model so that it returns the next gig to the controller.
 
@@ -356,9 +360,127 @@ end
 Work it out yourself :) Look at photo.rb for clues.
 
 
-We'll be editing *app/views/home/index.html.erb*
+You can decide how you would like your home page to be formatted: *app/views/home/index.html.erb*
 
-Hello
+[Here's mine](https://github.com/pedrogrande/bandrockr/blob/master/app/views/home/index.html.erb)
+
+
+
+
+#### Step 8.
+
+Embedding a SoundCloud widget onto the home page.
+
+Let's create a new field/attribute for the Track model. In your terminal:
+
+```
+rails g migration AddEmbedLinkToTrack embed_link:text
+```
+
+After checking your migration file (*db/migrate/xxxxxxx_add_embed_link_to_track.rb*) run `rake db:migrate`
+
+Now we'll add the embed_link field to the Track form. *app/views/tracks/_form.html.erb*
+
+```
+<%= f.input :embed_link, label: 'Paste the embed link here' %>
+```
+
+We also need to add the *:embed_link* attribute to our params list in *apps/controllers/tracks_controller.rb*
+
+Down the bottom of the file, find the *track_params* method and change it to read:
+```
+def track_params
+  params.require(:track).permit(:title, :album_id, :info, :buy_link, :embed_linkpd)
+end
+```
+
+Then add this to your home page *apps/views/home/index.html.erb* 
+```
+<%= @track.embed_link.html_safe %>
+```
+
+Go to [SoundCloud](https://soundcloud.com/theloveyourights/hey-now), click on Share and copy the widget code. Paste the code into the embed_link field for a track in your app (in your browser). Go to your homepage and see that it works.
+
+### Step 9.
+
+Let's put our app onto [Heroku](https://dashboard.heroku.com/)!
+
+Follow the [Getting Started](https://devcenter.heroku.com/articles/quickstart) guide on Heroku.
+
+If you get an SSH key error, see the [documentation](https://devcenter.heroku.com/articles/keys).
+
+Heroku has great documentation so search their devcenter site if you have any issues.
+
+Now we're ready to modify your app to make it work on Heroku.
+
+First we need to add a couple of gems and modify the *Gemfile*.
+
+As Heroku does not allow you to use SQLite as a database, we need to use PostgreSQL for our production environment.
+
+Find the `gem 'sqlite3'` line in your gemfile, cut it (Command+X) and paste it (Command+V) within the development group of gems.
+
+```
+group :development do
+  gem 'better_errors'
+  gem 'binding_of_caller', :platforms=>[:mri_19, :mri_20, :rbx]
+  gem 'hub', :require=>nil
+  gem 'quiet_assets'
+  gem 'rails_layout'
+  gem 'sqlite3'
+end
+```
+
+Now add a production group under the development group and include the *pg* (PostgreSQL) and *rails_12factor* (allows Rails 4 apps to run on Heroku) gems. 
+
+```
+group :production do
+  gem 'pg'
+  gem 'rails_12factor'
+end
+```
+
+Run `bundle` in your terminal.
+
+Create an app on Heroku in your terminal (substitue *appname* for the name of your app - it must be unique so sometimes you might need to add a number or your name):
+```
+heroku create appname
+```
+
+This has created a new git remote. If you type `git remote -v` in your terminal, you will see that there are Heroku entries there now.
+
+Commit your changes to git.
+
+```
+git add .
+git commit -am 'ready for Heroku'
+```
+
+And push your app to Heroku:
+```
+git push heroku master
+```
+
+The first push will take a minute or two. When it has finished, you need to create the database tables on the production database.
+
+```
+heroku run rake db:migrate
+```
+
+You can now visit your app on the web by going to the URL *http://YOUR_APP_NAME.herokuapp.com* (of course change YOUR_APP_NAME to what you named your app on Heroku).
+
+The data you have entered into your development environment will not be in your production environment.
+
+Add your Facebook developer ID and Secret to Heroku with the following command (obviously using your own key and secret).
+```
+heroku config:set OMNIAUTH_PROVIDER_KEY=XXXXXXXXXXXXXXX OMNIAUTH_PROVIDER_SECRET=XXXXXXXXXXXXXXX
+```
+
+This is the same as doing the *export* command on your development machine. You can check your Heroku config values at any time with `heroku config`.
+
+Go to the app you created at the [Facebook developer site](https://developers.facebook.com/apps), choose *Edit app* and change the *Site URL* to your Heroku app site (eg. http://YOUR_APP_NAME.herokuapp.com) and save the changes.
+
+Because your app is in *Sandbox mode*, only you will be able to login. If you take your app out of Sandbox mode, other people will be able to log in too.
+
 
 
 
