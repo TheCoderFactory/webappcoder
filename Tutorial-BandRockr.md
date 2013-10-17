@@ -481,6 +481,57 @@ Go to the app you created at the [Facebook developer site](https://developers.fa
 
 Because your app is in *Sandbox mode*, only you will be able to login. If you take your app out of Sandbox mode, other people will be able to log in too.
 
+### Step 10.
+
+Using cloud storage for your uploads. 
+
+> This tutorial assumes you have used the Carrierwave gem to allow image uploads for the photos section of the site. See the [Autogiftr](https://github.com/TheCoderFactory/webappcoder/blob/master/Tutorial-Giftify.md#step-11) tutorial for Carrierwave setup instructions.
+
+You will notice that when you upload pictures (or any other files) with Carrierwave in your app on Heroku, the pictures will stop working (disappear). This is because Heroku doesn't support storing files.
+
+You need to use a cloud storage service such as [AWS S3 (Amazon)](http://aws.amazon.com/s3/) or [Google Developer Storage](https://developers.google.com/storage/). Neither are free but are very cheap eg. 8.5c per Gigabyte per month. And AWS even has a free trial period for most of their services.
+
+I will use AWS S3 for this tutorial.
+
+After you have signed up for your account with Amazon AWS, go to the [Management Console](https://console.aws.amazon.com/console/home?#).
+
+Choose the S3 link and click the Create Bucket* button. Give the bucket a name (eg. bandrockr) and click on *Create*. I use the *US Standard* region as it is the cheapest and there is no noticable lag.
+
+We will now set up Carrierwave and Fog gems to use S3 for file storage in our app.
+
+In your *Gemfile*, add the fog gem:
+```
+gem "fog", "~> 1.3.1"
+```
+----
+You might not have seen this type of gem versioning in your Gemfile before now. It is possible to specify the gem version like below:
+
+++ '= 1.3.1'
+++ '> 1.3.1'
+++ '>= 1.3.1'
+++ '< 1.3.1'
+++ '~> 1.3.1'
+
+The first four are self-explanatory but the last one (using tilde+greater-than), means to use at least version 1.3.1 and use up to version 1.4 (the next major release). Or could be `>= 1.3.1 AND < 1.4`
+
+'~> 1.4' means `>= 1.4 AND < 2`
+----
+
+Once you have saved your Gemfile, run `bundle` in your terminal.
+
+Go to *app/uploaders/image_uploader.rb* (When I created my uploader I used the following command: `rails g uploader Image`, if you used a different `Photo` it would be *app/uploaders/photo_uploader.rb*).
+
+Comment out the line that says `storage :file`.
+
+Now create a file in *app/initializers* called *carrierwave.rb* and copy in the code found in this Gist:
+
+[Carrierwave initializer file to use Fog and S3 storage for your file uploads](https://gist.github.com/pedrogrande/7003284)
+
+
+
+
+
+
 
 
 
