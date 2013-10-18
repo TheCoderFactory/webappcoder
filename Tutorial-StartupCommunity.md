@@ -118,9 +118,19 @@ Restart server.
 
 Refresh browser
 
+Scaffold for PersonProfile
+
 ````
 rails g scaffold PersonProfile user:references name email phone tagline about:text url blog twitter facebook linkedin google github image slug
 ````
+
+Scaffold for BusinessProfile
+
+```
+rails g scaffold BusinessProfile user:references name email phone tagline about:text url blog twitter facebook linkedin google github image slug employees:integer hiring:boolean latitude:float longitude:float gmaps:boolean owner:integer
+```
+
+`rake db:migrate`
 
 
 
