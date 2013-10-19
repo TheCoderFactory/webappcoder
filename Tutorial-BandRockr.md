@@ -390,7 +390,7 @@ We also need to add the *:embed_link* attribute to our params list in *apps/cont
 Down the bottom of the file, find the *track_params* method and change it to read:
 ```
 def track_params
-  params.require(:track).permit(:title, :album_id, :info, :buy_link, :embed_linkpd)
+  params.require(:track).permit(:title, :album_id, :info, :buy_link, :embed_link)
 end
 ```
 

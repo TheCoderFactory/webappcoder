@@ -92,26 +92,23 @@ Restart server
 Set up Simple Form
 
 ```
-rails generate simple_form:install --bootstrap
+$ rails generate simple_form:install --bootstrap
 ````
 
 Set up Devise
 
 ```
-rails generate devise:install
-````
-
-```
-rails generate devise User
+$ rails generate devise:install
+$ rails generate devise User
 ````
 
 Set up FriendlyId
 ```
-rails generate friendly_id
+$ rails generate friendly_id
 ````
 
 ```
-rake db:migrate
+$ rake db:migrate
 ````
 
 Restart server.
@@ -121,7 +118,7 @@ Refresh browser
 Scaffold for PersonProfile
 
 ````
-rails g scaffold PersonProfile user:references name email phone tagline about:text url blog twitter facebook linkedin google github image slug
+rails g scaffold UserProfile user:references name email phone tagline about:text url blog twitter facebook linkedin google github image slug
 ````
 
 Scaffold for BusinessProfile
@@ -130,7 +127,61 @@ Scaffold for BusinessProfile
 rails g scaffold BusinessProfile user:references name email phone tagline about:text url blog twitter facebook linkedin google github image slug employees:integer hiring:boolean latitude:float longitude:float gmaps:boolean owner:integer
 ```
 
+in *db/migrate/xxx_create_user_profiles.rb*
+```
+	...
+    end
+    add_index :user_profiles, :slug, unique: true
+  end
+end
+````
+
+in *db/migrate/xxx_create_business_profiles.rb*
+```
+	...
+    end
+    add_index :business_profiles, :slug, unique: true
+  end
+end
+````
+
+
 `rake db:migrate`
+
+In *app/models/user_profile.rb*
+```
+class UserProfile < ActiveRecord::Base
+  belongs_to :user
+  **extend FriendlyId
+    friendly_id :name, use: :slugged**
+end
+````
+
+In *app/models/business_profiles.rb*
+```
+class BusinessProfile < ActiveRecord::Base
+  belongs_to :user
+  **extend FriendlyId
+    friendly_id :name, use: :slugged**
+end
+````
+
+Edit the controllers:
+
+*app/controllers/user_profiles_controller.rb*
+```
+def set_user_profile
+   @user_profile = UserProfile.**friendly**.find(params[:id])
+end
+````
+
+*app/controllers/business_profiles_controller.rb*
+```
+def set_user_profile
+   @business_profile = BusinessProfile.**friendly**.find(params[:id])
+end
+````
+
 
 
 
