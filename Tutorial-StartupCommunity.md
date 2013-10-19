@@ -152,8 +152,8 @@ In *app/models/user_profile.rb*
 ```
 class UserProfile < ActiveRecord::Base
   belongs_to :user
-  **extend FriendlyId
-    friendly_id :name, use: :slugged**
+  extend FriendlyId
+  friendly_id :name, use: :slugged
 end
 ````
 
@@ -161,8 +161,8 @@ In *app/models/business_profiles.rb*
 ```
 class BusinessProfile < ActiveRecord::Base
   belongs_to :user
-  **extend FriendlyId
-    friendly_id :name, use: :slugged**
+  extend FriendlyId
+  friendly_id :name, use: :slugged
 end
 ````
 
@@ -171,14 +171,14 @@ Edit the controllers:
 *app/controllers/user_profiles_controller.rb*
 ```
 def set_user_profile
-   @user_profile = UserProfile.**friendly**.find(params[:id])
+   @user_profile = UserProfile.friendly.find(params[:id])
 end
 ````
 
 *app/controllers/business_profiles_controller.rb*
 ```
 def set_user_profile
-   @business_profile = BusinessProfile.**friendly**.find(params[:id])
+   @business_profile = BusinessProfile.friendly.find(params[:id])
 end
 ````
 
