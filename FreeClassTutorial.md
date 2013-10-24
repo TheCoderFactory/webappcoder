@@ -160,7 +160,7 @@ end
 
 *app/models/photo.rb*
 ```
-class Member < ActiveRecord::Base
+class Photo < ActiveRecord::Base
 	belongs_to :band_profile
 end
 ```
@@ -176,7 +176,18 @@ end
 
 Let's have a look at what this gives us.
 
+[Band Profiles page](localhost:3000/band_profiles)
 
+[Photos page](localhost:3000/photos)
+
+[Gigs](localhost:3000/gigs)
+
+
+Let's put a "Create band" profile button on our home page. This will allow someone to create a profile for their band.
+
+Once they have created their band profile. We should allow them to add photos and gigs for their band.
+
+Let's
 
 
 
