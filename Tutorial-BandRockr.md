@@ -3,11 +3,6 @@
 This tutorial steps you through the creation of a web app that is perfect for a rock band. We will make it a generic site so that any band can use it.
 
 
-We will use:
-+ Omniauth to allow your users to log in with Facebook
-+ Heroku to upload your app to the internet.
-+ refactoring to tidy up our code
-
 
 
 ### Step 1.
