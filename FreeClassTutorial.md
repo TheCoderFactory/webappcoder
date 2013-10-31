@@ -187,7 +187,9 @@ Let's put a "Create band" profile button on our home page. This will allow someo
 
 Once they have created their band profile. We should allow them to add photos and gigs for their band.
 
-Let's
+Now we will give the user the ability to list their gigs on the site.
+
+
 
 
 

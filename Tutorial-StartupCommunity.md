@@ -47,7 +47,7 @@ Find the yield tag and enclose it with a DIV tag with the *container* class:
 Refresh your browser.
 
 Add a line above the yield tag:
-`<%= render 'layouts/navigation'>`
+`<%= render 'layouts/navigation' %>`
 
 Cmd + N
 Cmd + S
@@ -72,7 +72,7 @@ After the last line of text, add:
 body {padding-top: 50px;}
 ````
 
-## Add Users
+### Add Gems
 
 Go to _Gemfile_
 
@@ -81,6 +81,7 @@ Add these lines under the gem 'rails' line
 ```
 gem 'simple_form'
 gem 'devise'
+gem "rolify"
 gem 'cancan'
 gem 'friendly_id', '~> 5.0.0'
 ````
@@ -95,58 +96,84 @@ Set up Simple Form
 $ rails generate simple_form:install --bootstrap
 ````
 
+Modify the Simple Form template at *lib/templates/erb/scaffold/_form.html.erb*
+```
+<%%= simple_form_for(@<%= singular_table_name %>) do |f| %>
+  <%%= f.error_notification %>
+  <%- attributes.each do |attribute| -%>
+    <div class="form-group">
+      <%%= f.<%= attribute.reference? ? :association : :input %> :<%= attribute.name %>, input_html: { class: "form-control"} %>
+    </div>
+  <%- end -%>
+    <%%= f.button :submit %>
+<%% end %>
+```
+
 Set up Devise
 
 ```
 $ rails generate devise:install
 $ rails generate devise User
 ````
+Set up CanCan
+
+```
+rails g cancan:ability
+```
+
+Set up Rolify
+```
+rails g rolify:role Role User
+```
+
+Seed the database *db/seeds.rb*
+```
+puts 'CREATING ROLES'
+Role.create([
+  { :name => 'admin' }, 
+  { :name => 'user' },
+  { :name => 'VIP' }
+])
+puts 'SETTING UP DEFAULT USER LOGIN'
+user = User.create! :name => 'User1', :email => 'user@example.com', :password => 'pleaseme', :password_confirmation => 'pleaseme'
+puts 'New user created: ' << user.name
+user2 = User.create! :name => 'User2', :email => 'user2@example.com', :password => 'pleaseme', :password_confirmation => 'pleaseme'
+puts 'New user created: ' << user2.name
+user.add_role :admin
+user2.add_role :user
+```
+```
+rake db:seed
+```
 
 Set up FriendlyId
 ```
 $ rails generate friendly_id
 ````
 
-```
-$ rake db:migrate
-````
 
-Restart server.
-
-Refresh browser
-
-Scaffold for PersonProfile
+Scaffold for UserProfile
 
 ````
 rails g scaffold UserProfile user:references name email phone tagline about:text url blog twitter facebook linkedin google github image slug
 ````
 
-Scaffold for BusinessProfile
-
-```
-rails g scaffold BusinessProfile user:references name email phone tagline about:text url blog twitter facebook linkedin google github image slug employees:integer hiring:boolean latitude:float longitude:float gmaps:boolean owner:integer
-```
 
 in *db/migrate/xxx_create_user_profiles.rb*
 ```
-	...
+  ...
     end
     add_index :user_profiles, :slug, unique: true
   end
 end
 ````
 
-in *db/migrate/xxx_create_business_profiles.rb*
 ```
-	...
-    end
-    add_index :business_profiles, :slug, unique: true
-  end
-end
+$ rake db:migrate
 ````
 
 
-`rake db:migrate`
+Add the FriendlyId config to UserProfile.
 
 In *app/models/user_profile.rb*
 ```
@@ -157,6 +184,84 @@ class UserProfile < ActiveRecord::Base
 end
 ````
 
+Link the User model to the UserProfile with the *has_one* statement.
+In *app/models/user.rb*
+```
+class User < ActiveRecord::Base
+  has_one :user_profile
+  # Include default devise modules. Others available are:
+  # :confirmable, :lockable, :timeoutable and :omniauthable
+  devise :database_authenticatable, :registerable,
+         :recoverable, :rememberable, :trackable, :validatable
+end
+```
+
+
+Edit the controller so that FriendlyId works:
+
+*app/controllers/user_profiles_controller.rb*
+```
+def set_user_profile
+   @user_profile = UserProfile.friendly.find(params[:id])
+end
+````
+
+Add a "Create your profile" button on the home page. Set it so only people who have signed in and don't have a user profile already can see it.
+
+*app/views/home/index.html.erb*
+```
+<% if user_signed_in? %>
+  <div class="row">
+    <div class="col-md-12">
+      <% if current_user.user_profile.nil? %>
+      <div class="alert alert-warning">
+        <%= link_to 'Create your user profile', new_user_profile_path, :class => 'alert-link btn btn-warning' %>
+      </div>
+      <% end %>
+    </div>
+  </div>
+<% end %>
+```
+
+Take out the User field and slug field from the UserProfile form:
+*app/views/user_profiles/_form.html.erb*
+Remove:
+```
+  <div class="form-group">
+    <%= f.association :user, input_html: { class: "form-control"} %>
+  </div>
+  ...
+    <div class="form-group">
+      <%= f.input :slug, input_html: { class: "form-control"} %>
+    </div>
+```
+
+Add the current user to the UserProfile in *app/controllers/user_profiles_controller.rb*
+```
+def create
+  @user_profile = UserProfile.new(user_profile_params)
+  @user_profile.user_id = current_user.id
+
+  ....
+```
+
+Log in to the site and create a user profile for your user.
+
+
+Do the same for BusinessProfile. Here is a scaffold you can use:
+
+```
+rails g scaffold BusinessProfile user:references name email phone tagline about:text url blog twitter facebook linkedin google github image slug employees:integer hiring:boolean latitude:float longitude:float owner:integer
+```
+
+in *db/migrate/xxx_create_business_profiles.rb*
+```
+  ...
+    end
+    add_index :business_profiles, :slug, unique: true
+  end
+end
+````
 In *app/models/business_profiles.rb*
 ```
 class BusinessProfile < ActiveRecord::Base
@@ -166,14 +271,14 @@ class BusinessProfile < ActiveRecord::Base
 end
 ````
 
-Edit the controllers:
-
-*app/controllers/user_profiles_controller.rb*
+In *app/models/user.rb*
 ```
-def set_user_profile
-   @user_profile = UserProfile.friendly.find(params[:id])
-end
-````
+class User < ActiveRecord::Base
+  rolify
+  has_one :user_profile
+  has_many :business_profiles
+  ...
+```
 
 *app/controllers/business_profiles_controller.rb*
 ```
@@ -181,7 +286,39 @@ def set_user_profile
    @business_profile = BusinessProfile.friendly.find(params[:id])
 end
 ````
-
-
-
+Add User Profiles, Business Profiles and My Profile links to the navigation bar.
+*app/views/layouts/_navigation.html.erb*
+```
+<div class="header">
+  <div class="container">
+    <h1>The Startup Community</h1>
+    <ul class="nav nav-pills pull-right">
+      <li class="active"><a href="#">Home</a></li>
+      <li><%= link_to "User Profiles", user_profiles_path %></li>
+      <li><%= link_to "Business Profiles", business_profiles_path %></li>
+      <li><%= link_to "My Profile", user_profile_path(current_user.user_profile) %></li>
+      <% if user_signed_in? %>
+          <li>
+            <%= link_to destroy_user_session_path, :method=>'delete' do %>
+              <i class="fa fa-sign-out"></i> Logout
+            <% end %>
+          </li>
+          <li>
+            <%= link_to edit_user_registration_path do %>
+              <i class="fa fa-user"></i> My account
+            <% end %>
+          </li>
+          
+        <% else %>
+          <li>
+            <%= link_to 'Login', new_user_session_path %>
+          </li>
+          <li>
+            <%= link_to 'Sign up', new_user_registration_path %>
+          </li>
+        <% end %>
+    </ul>
+  </div>
+</div>
+```
 
