@@ -287,6 +287,11 @@ class User < ActiveRecord::Base
 
 *app/models/user_business_profiles.rb* will already look like this:
 ```
+class UserBusinessProfile < ActiveRecord::Base
+  belongs_to :user
+  belongs_to :business_profile
+end
+```
 
 
 *app/controllers/business_profiles_controller.rb*
