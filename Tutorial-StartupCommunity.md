@@ -251,7 +251,10 @@ Log in to the site and create a user profile for your user.
 Do the same for BusinessProfile. Here is a scaffold you can use:
 
 ```
-rails g scaffold BusinessProfile user:references name email phone tagline about:text url blog twitter facebook linkedin google github image slug employees:integer hiring:boolean latitude:float longitude:float owner:integer
+rails g scaffold BusinessProfile name email phone tagline about:text url blog twitter facebook linkedin google github image slug employees:integer hiring:boolean latitude:float longitude:float owner:integer
+```
+```
+rails g model UserBusinessProfile user:references business_profile:references
 ```
 
 in *db/migrate/xxx_create_business_profiles.rb*
@@ -265,7 +268,8 @@ end
 In *app/models/business_profiles.rb*
 ```
 class BusinessProfile < ActiveRecord::Base
-  belongs_to :user
+  has_many :user_business_profiles
+  has_many :users, through: :user_business_profiles
   extend FriendlyId
   friendly_id :name, use: :slugged
 end
@@ -276,9 +280,14 @@ In *app/models/user.rb*
 class User < ActiveRecord::Base
   rolify
   has_one :user_profile
-  has_many :business_profiles
+  has_many :user_business_profiles
+  has_many :business_profiles, through: :user_business_profiles
   ...
 ```
+
+*app/models/user_business_profiles.rb* will already look like this:
+```
+
 
 *app/controllers/business_profiles_controller.rb*
 ```
@@ -300,12 +309,12 @@ Add User Profiles, Business Profiles and My Profile links to the navigation bar.
       <% if user_signed_in? %>
           <li>
             <%= link_to destroy_user_session_path, :method=>'delete' do %>
-              <i class="fa fa-sign-out"></i> Logout
+              <i class="icon-sign-out"></i> Logout
             <% end %>
           </li>
           <li>
             <%= link_to edit_user_registration_path do %>
-              <i class="fa fa-user"></i> My account
+              <i class="icon-user"></i> My account
             <% end %>
           </li>
           
@@ -321,4 +330,24 @@ Add User Profiles, Business Profiles and My Profile links to the navigation bar.
   </div>
 </div>
 ```
+On the My Profile page we will add buttons to Add a Business Profile (only show the button if it is the current user's profile page).
+
+```
+<% if user_signed_in? %>
+  <% if current_page?(user_profile_path(current_user.user_profile)) %>
+    <%= link_to "Create your business profile", new_business_profile_path, class: 'btn btn-lg btn-warning' %>
+  <% end %>
+<% end %>
+```
+
+Now we will modify the business profile form and controller to add the current user as the owner and an associated user.
+Go to *apps/views/business_profiles/_form.html.erb*
+Remove the fields for *slug, longitude, latitude, owner*.
+
+Add the following to lines to the *create* method of *apps/controllers/business_profiles_controller.rb*
+```
+@business_profile.owner = current_user.id
+@business_profile.users << current_user
+```
+
 
