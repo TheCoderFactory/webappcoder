@@ -349,5 +349,35 @@ Add the following to lines to the *create* method of *apps/controllers/business_
 @business_profile.owner = current_user.id
 @business_profile.users << current_user
 ```
+Add a business profile using the form.
 
+On the Business Profile show page we will display a list of the users who are associated with the business (they work there).
+
+*app/views/business_profiles/show.html.erb*
+```
+<h3>Associated users:</h3>
+<% if @business_profile.users %>
+  <ul>
+    <% @business_profile.users.each do |user| %>
+      <li><%= user.user_profile.name %></li>
+    <% end %>
+  </ul>
+<% end %>
+```
+
+We will also display the owners name instead of their ID number.
+*app/controllers/business_profiles_controller.rb*
+```
+def show
+  @owner = User.find(@business_profile.owner)
+end
+```
+
+*app/views/business_profiles/show.html.erb*
+```
+<p>
+  <strong>Owner:</strong>
+  <%= @owner.user_profile.name %>
+</p>
+```
 
