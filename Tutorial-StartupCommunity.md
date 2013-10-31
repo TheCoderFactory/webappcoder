@@ -359,7 +359,7 @@ On the Business Profile show page we will display a list of the users who are as
 <% if @business_profile.users %>
   <ul>
     <% @business_profile.users.each do |user| %>
-      <li><%= user.user_profile.name %></li>
+      <li><%= link_to user.user_profile.name, user_profile_path(user.user_profile) %></li>
     <% end %>
   </ul>
 <% end %>
@@ -380,4 +380,81 @@ end
   <%= @owner.user_profile.name %>
 </p>
 ```
+
+Now we will make buttons that allow other people to associate themselves with a business profile.
+
+First we will create a button to Leave the business. We add logic to only show the button if the user is signed in and is already associated with the business.
+
+*app/views/business_profiles/show.html.erb*
+```
+<% if user_signed_in? %>
+  <% if current_user.business_profiles.include?(@business_profile) %>
+    <%= link_to "Leave this business", leave_business_profile_path, class: 'btn btn-danger' %>
+  <% end %>
+<% end %>
+```
+
+We now add the route for *leave_business_profile_path*
+
+In *config/routes.rb* change the business profiles resource to look like this:
+```
+resources :business_profiles do
+  member do
+    get :leave
+  end
+end
+```
+
+Do a rake routes in your terminal to see this new line:
+```
+leave_business_profile GET    /business_profiles/:id/leave(.:format) business_profiles#leave
+```
+
+Now we need to add a *leave* method to the Business profile controller:
+*app/controllers/business_profiles_controller.rb*
+```
+def leave
+  @business_profile = BusinessProfile.find(params[:id])
+  current_user.business_profiles.delete(@business_profile)
+  redirect_to @business_profile
+end
+```
+
+This method gets the business profile that the "Leave" button was pressed on. Then deletes that business from the user's list of associated business profiles. Then redirects the user back to the business profile page.
+
+
+Now let's do a Join button.
+
+Add the *else* clause and the new Join button in *app/views/business_profiles/show.html.erb*
+```
+<% if user_signed_in? %>
+  <% if current_user.business_profiles.include?(@business_profile) %>
+    <%= link_to "Leave this business", leave_business_profile_path, class: 'btn btn-danger' %>
+  <% else %>
+    <%= link_to "Join this business", join_business_profile_path, class: 'btn btn-success' %>
+  <% end %>
+<% end %>
+```
+
+Add the join route to *config/routes.rb*
+```
+resources :business_profiles do
+  member do
+    get :leave
+    get :join
+  end
+end
+```
+
+Add the Join method to *app/controllers/business_profiles_controller.rb*
+```
+def join
+  @business_profile = BusinessProfile.find(params[:id])
+  current_user.business_profiles << @business_profile
+  redirect_to @business_profile
+end
+```
+
+Your users can now create, join and leave business_profiles. 
+
 
