@@ -72,16 +72,18 @@ Now let's add the posts to the user_profile show page.
 <hr>
 <h3>Previous posts:</h3>
 <% if @posts %>
-  <% @posts.each do |post| %>
-    <div class="well">
-      <p>
-        <strong><%= post.title %></strong>
-      </p>
-      <p><small>Posted on <%= post.created_at.to_date %></small></p>
-      <hr>
-      <p><%= post.content %></p>
-    </div>
-  <% end %>
+	<div id="posts">
+	  <% @posts.each do |post| %>
+	    <div class="well">
+	      <p>
+	        <strong><%= post.title %></strong>
+	      </p>
+	      <p><small>Posted on <%= post.created_at.to_date %></small></p>
+	      <hr>
+	      <p><%= post.content %></p>
+	    </div>
+	  <% end %>
+	 </div>
 <% end %>
 ```
 
@@ -100,7 +102,7 @@ Now let's add the number of posts to Posts heading:
 *app/views/user_profiles/show.html.erb*
 
 ```
-<h2>My Posts (<span id="number_of_posts"><%= @posts.count %></span>)</h2>
+<h2>My Posts (<span id="posts_count"><%= @user_profile.user.posts.count %></span>)</h2>
 ```
 
 Now we will put the list of posts into a partial.
@@ -109,20 +111,63 @@ Now we will put the list of posts into a partial.
 ```
 
 Create a new file *app/views/posts/_post.html.erb*
-Cut/paste and modify the following part from the user_profile show page.
+
+Then cut/paste and following part from the user_profile show page and remove the first and last line. The *for each* loop does not need to be called here as it is implied by this type of partial. Also add the class 'post' to the div.
+
 ```
-~~<% @posts.each do |post| %>~~
-	<div class="well" id="single-post">
+<% @posts.each do |post| %>
+	<div class="well post">
 	  <p>
 	    <strong><%= post.title %></strong>
 	  </p>
-	  <p><small>Posted on <%= post.created_at.to_date %></small></p>
+	  <p><small>Posted on <%= post.created_at.strftime('%b %d, %Y at %I:%M %p') %></small></p>
 	  <hr>
 	  <p><%= post.content %></p>
 	</div>
-~~<% end %>~~
+<% end %>
 ```
 
+Add the following lines to *app/controllers/posts_controller.rb*
+
+This one up the top before the methods:
+
+```
+respond_to :html, :js
+```
+
+Change the create method to look like this:
+```
+def create
+    @post = Post.new(post_params)
+    @post.user = current_user
+ 
+    @post.save
+ 
+    respond_with @post, :location => user_profile_url(current_user.user_profile)
+  end
+```
+
+Modify the first line of the New Post form on the user_profile show page:
+
+*app/views/user_profiles/show.html.erb*
+```
+<%= simple_form_for @post, remote: true do |f| %>
+```
+
+
+Add the javascript! Because this template is aligned with the create method in the posts_controller, we have access to the @post variable. This way we can get the number of posts that belong to the user who posted this new post.
+
+
+```
+$('<%= escape_javascript(render(:partial => @post))%>')
+  .prependTo('#posts')
+  .hide()
+  .fadeIn()
+ 
+$('#new_post')[0].reset()
+ 
+$('#posts_count').html '<%= @post.user.posts.count %>'
+```
 
 
 
