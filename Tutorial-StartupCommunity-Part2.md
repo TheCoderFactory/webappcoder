@@ -157,6 +157,7 @@ Modify the first line of the New Post form on the user_profile show page:
 
 Add the javascript! Because this template is aligned with the create method in the posts_controller, we have access to the @post variable. This way we can get the number of posts that belong to the user who posted this new post.
 
+*app/views/posts/create.js.coffee*
 
 ```
 $('<%= escape_javascript(render(:partial => @post))%>')
