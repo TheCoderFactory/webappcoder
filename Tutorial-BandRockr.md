@@ -44,9 +44,8 @@ Respond to the questions as follows:
 7. (1) None
 8. (1) None
 9. (1) None
-10. (2) Twitter Bootstrap
-11. (2) Twitter Bootstrap (SASS)
-12. (4) Sendgrid
+10. (4) Twitter Bootstrap Version 3.0
+12. (4) Gmail
 13. (3) Omniauth
 14. (1) Facebook
 15. (2) CanCan with Rolify
