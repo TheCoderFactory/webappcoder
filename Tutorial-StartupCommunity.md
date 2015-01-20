@@ -96,18 +96,6 @@ Set up Simple Form
 $ rails generate simple_form:install --bootstrap
 ````
 
-Modify the Simple Form template at *lib/templates/erb/scaffold/_form.html.erb*
-```
-<%%= simple_form_for(@<%= singular_table_name %>) do |f| %>
-  <%%= f.error_notification %>
-  <%- attributes.each do |attribute| -%>
-    <div class="form-group">
-      <%%= f.<%= attribute.reference? ? :association : :input %> :<%= attribute.name %>, input_html: { class: "form-control"} %>
-    </div>
-  <%- end -%>
-    <%%= f.button :submit %>
-<%% end %>
-```
 
 Set up Devise
 
@@ -128,17 +116,11 @@ rails g rolify:role Role User
 
 Seed the database *db/seeds.rb*
 ```
-puts 'CREATING ROLES'
-Role.create([
-  { :name => 'admin' }, 
-  { :name => 'user' },
-  { :name => 'VIP' }
-])
 puts 'SETTING UP DEFAULT USER LOGIN'
-user = User.create! :name => 'User1', :email => 'user@example.com', :password => 'pleaseme', :password_confirmation => 'pleaseme'
-puts 'New user created: ' << user.name
-user2 = User.create! :name => 'User2', :email => 'user2@example.com', :password => 'pleaseme', :password_confirmation => 'pleaseme'
-puts 'New user created: ' << user2.name
+user = User.create!(:email => 'user@example.com', :password => 'pleaseme', :password_confirmation => 'pleaseme')
+puts 'New user created: ' << user.email
+user2 = User.create!(:email => 'user2@example.com', :password => 'pleaseme', :password_confirmation => 'pleaseme')
+puts 'New user created: ' << user2.email
 user.add_role :admin
 user2.add_role :user
 ```
