@@ -30,16 +30,8 @@ Now we will modify the posts controller so that when a user creates a post, it i
   def create
     @post = Post.new(post_params)
     @post.user = current_user
-
-    respond_to do |format|
-      if @post.save
-        format.html { redirect_to user_profile_path(current_user.user_profile), notice: 'Post was successfully created.' }
-        format.json { render action: 'show', status: :created, location: @post }
-      else
-        format.html { render action: 'new' }
-        format.json { render json: @post.errors, status: :unprocessable_entity }
-      end
-    end
+    @post.save
+    respond_with(@post)
   end
 ```
 
@@ -50,6 +42,7 @@ Now let's bring our users' posts into their user_profile pages and be ready to h
 def show
 	@posts = @user_profile.user.posts
 	@post = Post.new
+	respond_with(@user_profile)
 end
 ```
 
