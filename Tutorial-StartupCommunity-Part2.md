@@ -108,7 +108,7 @@ Create a new file *app/views/posts/_post.html.erb*
 Then cut/paste and following part from the user_profile show page and remove the first and last line. The *for each* loop does not need to be called here as it is implied by this type of partial. Also add the class 'post' to the div.
 
 ```
-<% @posts.each do |post| %>
+
 	<div class="well post">
 	  <p>
 	    <strong><%= post.title %></strong>
@@ -117,7 +117,6 @@ Then cut/paste and following part from the user_profile show page and remove the
 	  <hr>
 	  <p><%= post.content %></p>
 	</div>
-<% end %>
 ```
 
 Add the following lines to *app/controllers/posts_controller.rb*
