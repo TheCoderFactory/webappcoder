@@ -125,6 +125,9 @@ user.add_role :admin
 user2.add_role :user
 ```
 ```
+rake db:migrate
+```
+```
 rake db:seed
 ```
 
