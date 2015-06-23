@@ -111,7 +111,7 @@ rails g cancan:ability
 
 Set up Rolify
 ```
-rails g rolify:role Role User
+rails g rolify Role User
 ```
 
 Seed the database *db/seeds.rb*
