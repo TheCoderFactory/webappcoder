@@ -30,7 +30,7 @@ Refresh your browser. See the home page displayed.
 
 ##Add Bootstrap
 
-Add bootstrap.css to *app/assets/stylesheets* and bootstrap.min.js to *app/assets/javascripts*.
+Go to http://getbootstrap.com/getting-started and copy the CDN code to put into the head section of  *app/views/layouts/application.html.erb*
 
 Refresh browser.
 
